@@ -19,7 +19,12 @@ import { Plus } from "lucide-react";
 import { z } from "zod";
 
 // Schema without projectId as it comes from props
-const formSchema = insertTaskSchema.omit({ projectId: true, createdAt: true });
+const formSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  priority: z.enum(["low", "medium", "high"]),
+  status: z.enum(["todo", "in_progress", "done"]),
+});
 type FormValues = z.infer<typeof formSchema>;
 
 export function CreateTaskDialog({ projectId }: { projectId: number }) {

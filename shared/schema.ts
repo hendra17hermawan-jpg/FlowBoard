@@ -46,9 +46,3 @@ export type CreateProjectRequest = InsertProject;
 export type UpdateProjectRequest = Partial<InsertProject>;
 export type CreateTaskRequest = InsertTask;
 export type UpdateTaskRequest = Partial<InsertTask>;
-
-// API Types
-export type CreateProjectRequest = InsertProject;
-export type UpdateProjectRequest = Partial<InsertProject>;
-export type CreateTaskRequest = InsertTask;
-export type UpdateTaskRequest = Partial<InsertTask>;
