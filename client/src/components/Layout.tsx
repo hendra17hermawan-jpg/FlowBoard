@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, FolderKanban, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Settings, LogOut, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -7,6 +7,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+    { icon: BarChart3, label: "Reports", href: "/reports" },
     // Add more nav items as needed
   ];
 
