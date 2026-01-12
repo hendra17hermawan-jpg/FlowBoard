@@ -54,6 +54,11 @@ export async function registerRoutes(
   });
 
   // Tasks
+  app.get(api.tasks.listAll.path, async (_req, res) => {
+    const tasks = await storage.getAllTasks();
+    res.json(tasks);
+  });
+
   app.get(api.tasks.list.path, async (req, res) => {
     const tasks = await storage.getTasksByProject(Number(req.params.projectId));
     res.json(tasks);

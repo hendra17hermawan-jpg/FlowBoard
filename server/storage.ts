@@ -18,6 +18,7 @@ export interface IStorage {
 
   // Tasks
   getTasksByProject(projectId: number): Promise<Task[]>;
+  getAllTasks(): Promise<Task[]>;
   getTask(id: number): Promise<Task | undefined>;
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, updates: UpdateTaskRequest): Promise<Task>;
@@ -55,6 +56,10 @@ export class DatabaseStorage implements IStorage {
   // Tasks
   async getTasksByProject(projectId: number): Promise<Task[]> {
     return await db.select().from(tasks).where(eq(tasks.projectId, projectId));
+  }
+
+  async getAllTasks(): Promise<Task[]> {
+    return await db.select().from(tasks);
   }
 
   async getTask(id: number): Promise<Task | undefined> {

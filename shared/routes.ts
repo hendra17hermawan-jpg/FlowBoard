@@ -67,6 +67,13 @@ export const api = {
         200: z.array(z.custom<typeof tasks.$inferSelect>()),
       },
     },
+    listAll: {
+      method: 'GET' as const,
+      path: '/api/tasks',
+      responses: {
+        200: z.array(z.custom<typeof tasks.$inferSelect>()),
+      },
+    },
     create: {
       method: 'POST' as const,
       path: '/api/projects/:projectId/tasks',
