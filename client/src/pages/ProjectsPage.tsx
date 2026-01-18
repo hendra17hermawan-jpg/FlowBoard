@@ -55,7 +55,7 @@ export default function ProjectsPage() {
                     <div className="flex items-center justify-between mt-auto">
                       <div className="flex items-center gap-2 text-muted-foreground text-xs">
                         <Calendar className="h-3.5 w-3.5" />
-                        {new Date(project.createdAt).toLocaleDateString()}
+                        {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : "No date"}
                       </div>
                       <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-none capitalize">
                         {project.status}
