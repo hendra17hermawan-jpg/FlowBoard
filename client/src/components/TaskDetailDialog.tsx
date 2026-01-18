@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
@@ -46,16 +46,16 @@ export function TaskDetailDialog({ task, open, onOpenChange }: TaskDetailDialogP
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: task?.title || "",
-      description: task?.description || "",
-      status: task?.status as any || "todo",
-      priority: task?.priority as any || "medium",
-      dueDate: task?.dueDate ? new Date(task.dueDate) : null,
+      title: "",
+      description: "",
+      status: "todo",
+      priority: "medium",
+      dueDate: null,
     },
   });
 
   // Update form values when task changes
-  useState(() => {
+  useEffect(() => {
     if (task) {
       form.reset({
         title: task.title,
@@ -65,7 +65,7 @@ export function TaskDetailDialog({ task, open, onOpenChange }: TaskDetailDialogP
         dueDate: task.dueDate ? new Date(task.dueDate) : null,
       });
     }
-  });
+  }, [task, form]);
 
   const onSubmit = (data: FormValues) => {
     if (!task) return;
