@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import Dashboard from "@/pages/Dashboard";
+import { Dashboard } from "@/pages/Dashboard";
 import ProjectView from "@/pages/ProjectView";
 import Reports from "@/pages/Reports";
 import TasksPage from "@/pages/Tasks";

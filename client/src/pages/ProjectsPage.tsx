@@ -21,8 +21,9 @@ import {
   Tooltip 
 } from "recharts";
 import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
 
-export default function Dashboard() {
+export default function ProjectsPage() {
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
   const { data: tasks = [], isLoading: tasksLoading } = useTasks();
 

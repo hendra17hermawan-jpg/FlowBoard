@@ -23,7 +23,7 @@ import {
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 
-export default function Dashboard() {
+export function Dashboard() {
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
   const { data: tasks = [], isLoading: tasksLoading } = useTasks();
 
