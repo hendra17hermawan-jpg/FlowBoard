@@ -12,7 +12,7 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { CSS } from "@dnd-kit/utilities";
 import { Task } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 // Sortable Task Card Component
 function SortableTaskCard({ task }: { task: Task }) {
@@ -167,17 +167,17 @@ export default function TasksPage() {
             <div className="flex items-center gap-4">
               <div className="bg-muted p-1 rounded-lg flex gap-1">
                 <Button 
-                  variant={view === "board" ? "white" : "ghost"} 
+                  variant={view === "board" ? "secondary" : "ghost"} 
                   size="sm" 
-                  className={cn("h-8 rounded-md", view === "board" && "shadow-sm bg-white")}
+                  className={cn("h-8 rounded-md bg-white shadow-sm")}
                   onClick={() => setView("board")}
                 >
                   <LayoutDashboard className="h-4 w-4 mr-2" /> Board
                 </Button>
                 <Button 
-                  variant={view === "list" ? "white" : "ghost"} 
+                  variant={view === "list" ? "secondary" : "ghost"} 
                   size="sm" 
-                  className={cn("h-8 rounded-md", view === "list" && "shadow-sm bg-white")}
+                  className={cn("h-8 rounded-md", view === "list" && "bg-white shadow-sm")}
                   onClick={() => setView("list")}
                 >
                   <List className="h-4 w-4 mr-2" /> List
