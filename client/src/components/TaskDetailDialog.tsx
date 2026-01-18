@@ -1,30 +1,29 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateTask } from "@/hooks/use-tasks";
+import { useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Task } from "@shared/schema";
 
 const formSchema = z.object({
-  projectId: z.string().min(1, "Project is required"),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   status: z.enum(["todo", "in_progress", "done"]),
@@ -34,72 +33,68 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AddTaskDialog() {
-  const [open, setOpen] = useState(false);
-  const { data: projects = [] } = useProjects();
+interface TaskDetailDialogProps {
+  task: Task | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function TaskDetailDialog({ task, open, onOpenChange }: TaskDetailDialogProps) {
+  const { mutate: updateTask, isPending: isUpdating } = useUpdateTask();
+  const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      projectId: "",
-      title: "",
-      description: "",
-      status: "todo",
-      priority: "medium",
-      dueDate: null,
+      title: task?.title || "",
+      description: task?.description || "",
+      status: task?.status as any || "todo",
+      priority: task?.priority as any || "medium",
+      dueDate: task?.dueDate ? new Date(task.dueDate) : null,
     },
   });
 
-  const selectedProjectId = form.watch("projectId");
-  const { mutate, isPending } = useCreateTask(Number(selectedProjectId));
+  // Update form values when task changes
+  useState(() => {
+    if (task) {
+      form.reset({
+        title: task.title,
+        description: task.description || "",
+        status: task.status as any,
+        priority: task.priority as any,
+        dueDate: task.dueDate ? new Date(task.dueDate) : null,
+      });
+    }
+  });
 
   const onSubmit = (data: FormValues) => {
-    const { projectId, ...taskData } = data;
-    mutate(taskData as any, {
+    if (!task) return;
+    updateTask({ id: task.id, ...data as any }, {
       onSuccess: () => {
-        setOpen(false);
-        form.reset();
+        onOpenChange(false);
       },
     });
   };
 
+  const handleDelete = () => {
+    if (!task) return;
+    if (confirm("Are you sure you want to delete this task?")) {
+      deleteTask(task.id, {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      });
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2 rounded-xl">
-          <Plus className="h-4 w-4" /> Add Task
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="font-display">Add New Task</DialogTitle>
+          <DialogTitle className="font-display">Task Details</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="projectId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Project</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder="Select a project" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {projects.map((p) => (
-                        <SelectItem key={p.id} value={p.id.toString()}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="title"
@@ -120,7 +115,7 @@ export function AddTaskDialog() {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Task details..." {...field} className="rounded-xl resize-none" />
+                    <Textarea placeholder="Task details..." {...field} className="rounded-xl resize-none h-24" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,9 +151,6 @@ export function AddTaskDialog() {
                         mode="single"
                         selected={field.value || undefined}
                         onSelect={field.onChange}
-                        disabled={(date) =>
-                          date < new Date(new Date().setHours(0, 0, 0, 0))
-                        }
                         initialFocus
                       />
                     </PopoverContent>
@@ -174,7 +166,7 @@ export function AddTaskDialog() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="rounded-xl text-xs sm:text-sm">
                           <SelectValue placeholder="Status" />
@@ -196,7 +188,7 @@ export function AddTaskDialog() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="rounded-xl text-xs sm:text-sm">
                           <SelectValue placeholder="Priority" />
@@ -213,10 +205,18 @@ export function AddTaskDialog() {
                 )}
               />
             </div>
-            <DialogFooter className="pt-4">
-              <Button type="submit" disabled={isPending || !selectedProjectId} className="w-full rounded-xl">
-                {isPending ? "Adding..." : "Add Task"}
+            <DialogFooter className="pt-4 flex items-center justify-between sm:justify-between gap-2">
+              <Button type="button" variant="destructive" size="icon" onClick={handleDelete} disabled={isDeleting} className="rounded-xl shrink-0">
+                <Trash2 className="h-4 w-4" />
               </Button>
+              <div className="flex gap-2 flex-1">
+                <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="flex-1 rounded-xl">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isUpdating} className="flex-1 rounded-xl">
+                  {isUpdating ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>

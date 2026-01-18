@@ -13,9 +13,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { Task } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 
 // Sortable Task Card Component
-function SortableTaskCard({ task }: { task: Task }) {
+function SortableTaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
   const {
     attributes,
     listeners,
@@ -40,10 +41,9 @@ function SortableTaskCard({ task }: { task: Task }) {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      onClick={onClick}
       className={cn(
-        "group relative bg-white p-4 rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing",
+        "group relative bg-white p-4 rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-pointer active:cursor-grabbing",
         isDragging && "opacity-50 ring-2 ring-primary rotate-2"
       )}
     >
@@ -54,7 +54,9 @@ function SortableTaskCard({ task }: { task: Task }) {
         >
           {task.priority}
         </Badge>
-        <GripVertical className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 -m-1">
+          <GripVertical className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
+        </div>
       </div>
       <h4 className="font-medium text-foreground leading-tight">{task.title}</h4>
       {task.description && (
@@ -71,7 +73,7 @@ function SortableTaskCard({ task }: { task: Task }) {
 }
 
 // Column Component
-function KanbanColumn({ id, title, tasks }: { id: string; title: string; tasks: Task[] }) {
+function KanbanColumn({ id, title, tasks, onTaskClick }: { id: string; title: string; tasks: Task[]; onTaskClick: (task: Task) => void }) {
   const { setNodeRef } = useSortable({ id });
 
   return (
@@ -85,7 +87,7 @@ function KanbanColumn({ id, title, tasks }: { id: string; title: string; tasks: 
       <div className="flex-1 space-y-3 min-h-[150px]">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <SortableTaskCard key={task.id} task={task} />
+            <SortableTaskCard key={task.id} task={task} onClick={() => onTaskClick(task)} />
           ))}
         </SortableContext>
         {tasks.length === 0 && (
@@ -103,6 +105,8 @@ export default function TasksPage() {
   const { mutate: updateTask } = useUpdateTask();
   const [activeId, setActiveId] = useState<number | null>(null);
   const [view, setView] = useState<"list" | "board">("board");
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -127,9 +131,14 @@ export default function TasksPage() {
     }
 
     if (activeTask.status !== newStatus && ["todo", "in_progress", "done"].includes(newStatus)) {
-      updateTask({ id: activeTask.id, status: newStatus });
+      updateTask({ id: activeTask.id, status: newStatus as any });
     }
     setActiveId(null);
+  };
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setDetailOpen(true);
   };
 
   const columns = {
@@ -169,7 +178,7 @@ export default function TasksPage() {
                 <Button 
                   variant={view === "board" ? "secondary" : "ghost"} 
                   size="sm" 
-                  className={cn("h-8 rounded-md bg-white shadow-sm")}
+                  className={cn("h-8 rounded-md shadow-sm", view === "board" ? "bg-white" : "bg-transparent")}
                   onClick={() => setView("board")}
                 >
                   <LayoutDashboard className="h-4 w-4 mr-2" /> Board
@@ -177,7 +186,7 @@ export default function TasksPage() {
                 <Button 
                   variant={view === "list" ? "secondary" : "ghost"} 
                   size="sm" 
-                  className={cn("h-8 rounded-md", view === "list" && "bg-white shadow-sm")}
+                  className={cn("h-8 rounded-md shadow-sm", view === "list" ? "bg-white" : "bg-transparent")}
                   onClick={() => setView("list")}
                 >
                   <List className="h-4 w-4 mr-2" /> List
@@ -204,14 +213,14 @@ export default function TasksPage() {
                 onDragEnd={handleDragEnd}
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full min-h-[600px] pb-8">
-                  <KanbanColumn id="todo" title="To Do" tasks={columns.todo} />
-                  <KanbanColumn id="in_progress" title="In Progress" tasks={columns.in_progress} />
-                  <KanbanColumn id="done" title="Done" tasks={columns.done} />
+                  <KanbanColumn id="todo" title="To Do" tasks={columns.todo} onTaskClick={handleTaskClick} />
+                  <KanbanColumn id="in_progress" title="In Progress" tasks={columns.in_progress} onTaskClick={handleTaskClick} />
+                  <KanbanColumn id="done" title="Done" tasks={columns.done} onTaskClick={handleTaskClick} />
                 </div>
                 <DragOverlay>
                   {activeId ? (
                     <div className="rotate-2 cursor-grabbing">
-                      <SortableTaskCard task={tasks.find(t => t.id === activeId)!} />
+                      <SortableTaskCard task={tasks.find(t => t.id === activeId)!} onClick={() => {}} />
                     </div>
                   ) : null}
                 </DragOverlay>
@@ -227,7 +236,7 @@ export default function TasksPage() {
                   </Card>
                 ) : (
                   tasks.map((task) => (
-                    <Card key={task.id} className="border-none shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden">
+                    <Card key={task.id} onClick={() => handleTaskClick(task)} className="border-none shadow-sm hover:shadow-md transition-shadow bg-white overflow-hidden cursor-pointer">
                       <div className="flex items-center p-6 gap-6">
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-3">
@@ -258,6 +267,7 @@ export default function TasksPage() {
           </div>
         </div>
       </div>
+      <TaskDetailDialog task={selectedTask} open={detailOpen} onOpenChange={setDetailOpen} />
     </Layout>
   );
 }
