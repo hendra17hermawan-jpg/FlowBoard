@@ -1,11 +1,11 @@
 import { useMembers } from "@/hooks/use-members";
 import { Layout } from "@/components/Layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserPlus, Mail, Shield } from "lucide-react";
+import { Mail, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AddMemberDialog } from "@/components/AddMemberDialog";
 
 export default function TeamPage() {
   const { data: members = [], isLoading } = useMembers();
@@ -18,9 +18,7 @@ export default function TeamPage() {
             <h1 className="text-4xl font-display font-bold text-foreground">Team Members</h1>
             <p className="text-muted-foreground mt-2 text-lg">Manage your team and their roles.</p>
           </div>
-          <Button className="gap-2 rounded-xl">
-            <UserPlus className="h-4 w-4" /> Add Member
-          </Button>
+          <AddMemberDialog />
         </div>
 
         {isLoading ? (
