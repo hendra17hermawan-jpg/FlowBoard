@@ -8,14 +8,18 @@ import Dashboard from "@/pages/Dashboard";
 import ProjectView from "@/pages/ProjectView";
 import Reports from "@/pages/Reports";
 import TasksPage from "@/pages/Tasks";
+import TeamPage from "@/pages/Team";
+import ProjectsPage from "@/pages/ProjectsPage";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/projects" component={ProjectsPage} />
       <Route path="/project/:id" component={ProjectView} />
       <Route path="/reports" component={Reports} />
       <Route path="/tasks" component={TasksPage} />
+      <Route path="/team" component={TeamPage} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -3,11 +3,52 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { projects, tasks, members } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // Members
+  app.get(api.members.list.path, async (req, res) => {
+    const members = await storage.getMembers();
+    res.json(members);
+  });
+
+  app.post(api.members.create.path, async (req, res) => {
+    try {
+      const input = api.members.create.input.parse(req.body);
+      const member = await storage.createMember(input);
+      res.status(201).json(member);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
+  app.put(api.members.update.path, async (req, res) => {
+    try {
+      const input = api.members.update.input.parse(req.body);
+      const member = await storage.updateMember(Number(req.params.id), input);
+      if (!member) return res.status(404).json({ message: "Member not found" });
+      res.json(member);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
+  app.delete(api.members.delete.path, async (req, res) => {
+    await storage.deleteMember(Number(req.params.id));
+    res.status(204).end();
+  });
 
   // Projects
   app.get(api.projects.list.path, async (req, res) => {
@@ -102,12 +143,12 @@ export async function registerRoutes(
   // Seed data
   const existingProjects = await storage.getProjects();
   if (existingProjects.length === 0) {
-    const p1 = await storage.createProject({
+    const [p1] = await db.insert(projects).values({
       name: "Website Redesign",
       description: "Revamp the company website with modern UI",
       status: "active"
-    });
-    await storage.createTask({
+    }).returning();
+    await db.insert(tasks).values({
       projectId: p1.id,
       title: "Design Mockups",
       description: "Create Figma designs for homepage",
@@ -115,7 +156,7 @@ export async function registerRoutes(
       priority: "high",
       dueDate: new Date()
     });
-    await storage.createTask({
+    await db.insert(tasks).values({
       projectId: p1.id,
       title: "Implement Landing Page",
       description: "Convert designs to React components",
@@ -123,18 +164,25 @@ export async function registerRoutes(
       priority: "high"
     });
 
-    const p2 = await storage.createProject({
+    const [p2] = await db.insert(projects).values({
       name: "Mobile App",
       description: "Flutter app for Android and iOS",
       status: "active"
-    });
-    await storage.createTask({
+    }).returning();
+    await db.insert(tasks).values({
       projectId: p2.id,
       title: "Setup CI/CD",
       description: "Configure GitHub Actions",
       status: "todo",
       priority: "medium"
     });
+
+    // Seed team members
+    await db.insert(members).values([
+      { name: "John Doe", email: "john@example.com", role: "admin" },
+      { name: "Jane Smith", email: "jane@example.com", role: "member" },
+      { name: "Alice Brown", email: "alice@example.com", role: "member" }
+    ]);
   }
 
   return httpServer;

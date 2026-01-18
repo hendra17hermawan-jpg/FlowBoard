@@ -1,14 +1,23 @@
 import {
-  projects, tasks,
+  projects, tasks, members,
   type Project, type InsertProject,
   type Task, type InsertTask,
+  type Member, type InsertMember,
   type CreateProjectRequest, type UpdateProjectRequest,
-  type CreateTaskRequest, type UpdateTaskRequest
+  type CreateTaskRequest, type UpdateTaskRequest,
+  type CreateMemberRequest, type UpdateMemberRequest
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
+  // Members
+  getMembers(): Promise<Member[]>;
+  getMember(id: number): Promise<Member | undefined>;
+  createMember(member: InsertMember): Promise<Member>;
+  updateMember(id: number, updates: UpdateMemberRequest): Promise<Member>;
+  deleteMember(id: number): Promise<void>;
+
   // Projects
   getProjects(): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
@@ -26,6 +35,30 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Members
+  async getMembers(): Promise<Member[]> {
+    return await db.select().from(members);
+  }
+
+  async getMember(id: number): Promise<Member | undefined> {
+    const [member] = await db.select().from(members).where(eq(members.id, id));
+    return member;
+  }
+
+  async createMember(insertMember: InsertMember): Promise<Member> {
+    const [member] = await db.insert(members).values(insertMember).returning();
+    return member;
+  }
+
+  async updateMember(id: number, updates: UpdateMemberRequest): Promise<Member> {
+    const [member] = await db.update(members).set(updates).where(eq(members.id, id)).returning();
+    return member;
+  }
+
+  async deleteMember(id: number): Promise<void> {
+    await db.delete(members).where(eq(members.id, id));
+  }
+
   // Projects
   async getProjects(): Promise<Project[]> {
     return await db.select().from(projects);

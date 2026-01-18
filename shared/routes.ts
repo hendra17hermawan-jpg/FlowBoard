@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertProjectSchema, insertTaskSchema, projects, tasks } from './schema';
+import { insertProjectSchema, insertTaskSchema, insertMemberSchema, projects, tasks, members } from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -15,6 +15,42 @@ export const errorSchemas = {
 };
 
 export const api = {
+  members: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/members',
+      responses: {
+        200: z.array(z.custom<typeof members.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/members',
+      input: insertMemberSchema,
+      responses: {
+        201: z.custom<typeof members.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/members/:id',
+      input: insertMemberSchema.partial(),
+      responses: {
+        200: z.custom<typeof members.$inferSelect>(),
+        400: errorSchemas.validation,
+        404: errorSchemas.notFound,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/members/:id',
+      responses: {
+        204: z.void(),
+        404: errorSchemas.notFound,
+      },
+    },
+  },
   projects: {
     list: {
       method: 'GET' as const,
