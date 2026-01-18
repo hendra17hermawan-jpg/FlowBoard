@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
+import { AddTaskDialog } from "@/components/AddTaskDialog";
 
 export default function TasksPage() {
   const { data: tasks = [], isLoading } = useTasks();
@@ -29,9 +30,12 @@ export default function TasksPage() {
   return (
     <Layout>
       <div className="p-8 max-w-7xl mx-auto w-full space-y-8">
-        <div>
-          <h1 className="text-4xl font-display font-bold text-foreground">All Tasks</h1>
-          <p className="text-muted-foreground mt-2 text-lg">Manage all tasks across all your projects.</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-display font-bold text-foreground">All Tasks</h1>
+            <p className="text-muted-foreground mt-2 text-lg">Manage all tasks across all your projects.</p>
+          </div>
+          <AddTaskDialog />
         </div>
 
         {isLoading ? (
