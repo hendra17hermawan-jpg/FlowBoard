@@ -6,9 +6,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   const navItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+    { icon: FolderKanban, label: "Projects", href: "/" },
+    { icon: LayoutDashboard, label: "Tasks", href: "/tasks" },
     { icon: BarChart3, label: "Reports", href: "/reports" },
-    // Add more nav items as needed
   ];
 
   return (
