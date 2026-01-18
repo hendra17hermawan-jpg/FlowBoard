@@ -55,7 +55,11 @@ export function AddTaskDialog() {
 
   const onSubmit = (data: FormValues) => {
     const { projectId, ...taskData } = data;
-    mutate(taskData as any, {
+    const formattedData = {
+      ...taskData,
+      dueDate: taskData.dueDate ? taskData.dueDate.toISOString() : null,
+    };
+    mutate(formattedData as any, {
       onSuccess: () => {
         setOpen(false);
         form.reset();

@@ -69,7 +69,11 @@ export function TaskDetailDialog({ task, open, onOpenChange }: TaskDetailDialogP
 
   const onSubmit = (data: FormValues) => {
     if (!task) return;
-    updateTask({ id: task.id, ...data as any }, {
+    const formattedData = {
+      ...data,
+      dueDate: data.dueDate ? data.dueDate.toISOString() : null,
+    };
+    updateTask({ id: task.id, ...formattedData as any }, {
       onSuccess: () => {
         onOpenChange(false);
       },
